@@ -1,0 +1,26 @@
+/* Custom Styles for MathQuiz Master */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Smooth transitions for theme switching */
+*, ::before, ::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.5);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.8);
+}
