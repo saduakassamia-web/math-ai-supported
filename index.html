@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathQuiz Mastery - Learn & Test Math</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax for rendering math expressions -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200 min-h-screen flex flex-col font-sans">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="showTopicSelection()">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl flex items-center justify-center w-10 h-10 shadow-md">
+                        <i class="fa-solid font-mono">∑</i>
+                    </div>
+                    <span class="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">MathQuiz<span class="text-blue-600">Master</span></span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="themeToggle" onclick="toggleTheme()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+                        <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-5xl w-full mx-auto p-4 sm:p-6 md:p-8">
+
+        <!-- 1. TOPIC SELECTION SCREEN -->
+        <section id="topicScreen" class="space-y-6">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">Choose a Math Topic</h1>
+                <p class="text-slate-600 dark:text-slate-400 text-base">Select any topic below to practice 10 tailored math questions with step-by-step solutions.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pt-4" id="topicsGrid">
+                <!-- Dynamically generated topic cards -->
+            </div>
+        </section>
+
+        <!-- 2. QUIZ SCREEN -->
+        <section id="quizScreen" class="hidden max-w-3xl mx-auto space-y-6">
+            <!-- Header bar with topic & back button -->
+            <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <button onclick="showTopicSelection()" class="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 font-semibold text-sm transition">
+                    <i class="fa-solid fa-arrow-left"></i> Change Topic
+                </button>
+                <div id="quizTopicTitle" class="font-bold text-slate-900 dark:text-white text-base"></div>
+                <div id="quizCounter" class="text-xs font-bold px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full"></div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-6">
+                <div class="flex justify-between items-start gap-4">
+                    <h2 id="questionText" class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed"></h2>
+                    <span id="difficultyBadge" class="px-2.5 py-1 text-xs font-semibold rounded-md uppercase tracking-wider shrink-0"></span>
+                </div>
+
+                <!-- Options -->
+                <div id="optionsContainer" class="space-y-3"></div>
+
+                <!-- Explanation / Solution Box -->
+                <div id="explanationBox" class="hidden p-4 rounded-xl border bg-slate-50 dark:bg-slate-900/50 space-y-2">
+                    <div class="font-bold text-sm flex items-center gap-2" id="explanationHeader"></div>
+                    <div id="explanationText" class="text-slate-700 dark:text-slate-300 text-sm leading-relaxed"></div>
+                </div>
+
+                <!-- Footer Navigation -->
+                <div class="flex justify-between items-center pt-2">
+                    <button id="prevBtn" onclick="prevQuestion()" class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition disabled:opacity-40 disabled:pointer-events-none">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> Previous
+                    </button>
+                    <button id="nextBtn" onclick="nextQuestion()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition disabled:opacity-40 disabled:pointer-events-none">
+                        Next <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. RESULTS SCREEN -->
+        <section id="resultScreen" class="hidden max-w-3xl mx-auto space-y-8">
+            <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 text-center space-y-6">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-3xl font-extrabold shadow-inner" id="scoreIcon">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div class="space-y-1">
+                    <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white" id="resultGradeText">Great Job!</h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm" id="resultSubTitle">You have completed the test.</p>
+                </div>
+
+                <!-- Score statistics -->
+                <div class="grid grid-cols-3 gap-4 max-w-md mx-auto pt-2">
+                    <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Total Score</div>
+                        <div class="text-xl font-extrabold text-blue-600 dark:text-blue-400" id="finalScore">0 / 10</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Accuracy</div>
+                        <div class="text-xl font-extrabold text-emerald-600 dark:text-emerald-400" id="finalPercentage">0%</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Time spent</div>
+                        <div class="text-xl font-extrabold text-purple-600 dark:text-purple-400" id="timeSpent">00:00</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 pt-4">
+                    <button onclick="restartCurrentQuiz()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition">
+                        <i class="fa-solid fa-rotate-right mr-1.5"></i> Retake Quiz
+                    </button>
+                    <button onclick="showTopicSelection()" class="px-6 py-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-semibold rounded-lg transition">
+                        <i class="fa-solid fa-list mr-1.5"></i> Choose Another Topic
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detailed Question Review Accordion -->
+            <div class="space-y-4">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Review Detailed Answers</h3>
+                <div id="reviewList" class="space-y-3"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 MathQuiz Master • Interactive Educational Platform</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const quizData = {
+            "arithmetic": {
+                title: "Arithmetic & Percentages",
+                icon: "fa-calculator",
+                color: "bg-blue-500",
+                desc: "Order of operations, fractions, decimals, ratios, and percentages.",
+                questions: [
+                    { q: "Calculate the value: $5 + 3 \\times 2 - 4$", options: ["12", "7", "10", "16"], correct: 1, diff: "easy", exp: "Using PEMDAS/BODMAS, calculate multiplication first: $3 \\times 2 = 6$. Then addition/subtraction from left to right: $5 + 6 - 4 = 7$." },
+                    { q: "Convert the fraction $\\frac{3}{4}$ to a decimal.", options: ["0.75", "0.25", "0.50", "0.80"], correct: 0, diff: "easy", exp: "Divide the numerator by denominator: $3 \\div 4 = 0.75$." },
+                    { q: "What is $15\\%$ of $80$?", options: ["12", "10", "15", "20"], correct: 0, diff: "easy", exp: "Multiply decimal representation by total: $0.15 \\times 80 = 12$." },
+                    { q: "Simplify: $\\frac{2}{3} + \\frac{1}{6}$", options: ["$\\frac{5}{6}$", "$\\frac{3}{9}$", "$\\frac{1}{2}$", "$\\frac{4}{6}$"], correct: 0, diff: "medium", exp: "Find common denominator ($6$): $\\frac{4}{6} + \\frac{1}{6} = \\frac{5}{6}$." },
+                    { q: "Evaluate absolute value expression: $|-8| + |3| - |-5|$", options: ["6", "16", "0", "-10"], correct: 0, diff: "medium", exp: "$|-8| = 8$, $|3| = 3$, $|-5| = 5$. Thus: $8 + 3 - 5 = 6$." },
+                    { q: "Find the mean of the dataset: $4, 8, 12, 16, 20$", options: ["12", "10", "14", "15"], correct: 0, diff: "medium", exp: "Sum of values $= 60$. Divide by count ($5$): $60 \\div 5 = 12$." },
+                    { q: "If a product price increases by $20\\%$ from $\\$50$, what is the new price?", options: ["$\\$60$", "$\\$55$", "$\\$65$", "$\\$70$"], correct: 0, diff: "medium", exp: "Increase $= 50 \\times 0.20 = \\$10$. New price $= 50 + 10 = \\$60$." },
+                    { q: "Simplify: $\\frac{0.4 \\times 0.5}{0.02}$", options: ["10", "1", "100", "0.1"], correct: 0, diff: "hard", exp: "Numerator $= 0.2$. Dividing $0.2 \\div 0.02 = 10$." },
+                    { q: "If $a:b = 2:3$ and $b:c = 4:5$, find $a:c$.", options: ["8:15", "2:5", "6:15", "4:15"], correct: 0, diff: "hard", exp: "Combine ratios: $a:b:c = 8:12:15$, so $a:c = 8:15$." },
+                    { q: "A worker receives a $10\\%$ wage cut, then a $10\\%$ raise. Compared to the original, the salary is:", options: ["1% lower", "Same", "1% higher", "2% lower"], correct: 0, diff: "hard", exp: "Let original $= 100$. After cut $= 90$. After raise $= 90 \\times 1.1 = 99$. That is $1\\%$ lower." }
+                ]
+            },
+            "equations": {
+                title: "Equations & Inequalities",
+                icon: "fa-equals",
+                color: "bg-emerald-500",
+                desc: "Linear equations, systems of equations, proportions, and algebraic expressions.",
+                questions: [
+                    { q: "Solve for $x$: $3x - 5 = 16$", options: ["$x = 7$", "$x = 5$", "$x = 8$", "$x = 9$"], correct: 0, diff: "easy", exp: "Add $5$ to both sides: $3x = 21$. Divide by $3$: $x = 7$." },
+                    { q: "Solve for $y$: $\\frac{y}{4} = 9$", options: ["$y = 36$", "$y = 13$", "$y = 2.25$", "$y = 45$"], correct: 0, diff: "easy", exp: "Multiply both sides by $4$: $y = 9 \\times 4 = 36$." },
+                    { q: "If 5 workers complete a task in 12 days, how long will 3 workers take at the same pace?", options: ["20 days", "15 days", "18 days", "25 days"], correct: 0, diff: "medium", exp: "Inverse proportion: $5 \\times 12 = 60$ worker-days. $60 \\div 3 = 20$ days." },
+                    { q: "Solve inequality: $2x + 4 < 12$", options: ["$x < 4$", "$x > 4$", "$x < 8$", "$x < 6$"], correct: 0, diff: "medium", exp: "Subtract $4$: $2x < 8$. Divide by $2$: $x < 4$." },
+                    { q: "Solve system: $x + y = 10$ and $x - y = 4$", options: ["$x=7, y=3$", "$x=6, y=4$", "$x=8, y=2$", "$x=5, y=5$"], correct: 0, diff: "medium", exp: "Add both equations: $2x = 14 \\Rightarrow x = 7$. Then $7 + y = 10 \\Rightarrow y = 3$." },
+                    { q: "Solve: $4(x - 2) = 2(x + 6)$", options: ["$x = 10$", "$x = 5$", "$x = 8$", "$x = 4$"], correct: 0, diff: "medium", exp: "Expand: $4x - 8 = 2x + 12 \\Rightarrow 2x = 20 \\Rightarrow x = 10$." },
+                    { q: "Find the root of $\\frac{x+2}{3} = \\frac{2x-1}{4}$", options: ["$x = 5.5$", "$x = 11$", "$x = 4$", "$x = 7$"], correct: 0, diff: "hard", exp: "Cross-multiply: $4(x+2) = 3(2x-1) \\Rightarrow 4x+8 = 6x-3 \\Rightarrow 2x = 11 \\Rightarrow x = 5.5$." },
+                    { q: "Solve: $|2x - 3| = 7$", options: ["$x = 5, -2$", "$x = 5, 2$", "$x = -5, 2$", "$x = 4, -3$"], correct: 0, diff: "hard", exp: "Two cases: $2x - 3 = 7 \\Rightarrow x=5$ and $2x - 3 = -7 \\Rightarrow x=-2$." },
+                    { q: "For what value of $k$ does $kx + 4 = 2x + k$ have infinitely many solutions?", options: ["$k = 2$", "$k = 4$", "$k = 0$", "$k = -2$"], correct: 0, diff: "hard", exp: "For infinite solutions, coefficients and constants must match: $k = 2$." },
+                    { q: "Solve system: $2x + 3y = 12$ and $4x + 6y = 20$", options: ["No solutions", "Infinitely many solutions", "$x=3, y=2$", "$x=0, y=4$"], correct: 0, diff: "hard", exp: "Multiply 1st by 2: $4x + 6y = 24$. Since $24 \\neq 20$, lines are parallel (No solution)." }
+                ]
+            },
+            "geometry": {
+                title: "Geometry & Measurements",
+                icon: "fa-shapes",
+                color: "bg-purple-500",
+                desc: "Area, perimeter, volume, Pythagorean theorem, angles, and shapes.",
+                questions: [
+                    { q: "Find the area of a circle with radius $r = 7\\text{ cm}$ (use $\\pi \\approx \\frac{22}{7}$).", options: ["$154\\text{ cm}^2$", "$44\\text{ cm}^2$", "$88\\text{ cm}^2$", "$308\\text{ cm}^2$"], correct: 0, diff: "medium", exp: "Formula: $A = \\pi r^2 = \\frac{22}{7} \\times 49 = 154\\text{ cm}^2$." },
+                    { q: "Right triangle legs are $6\\text{ cm}$ and $8\\text{ cm}$. Find the hypotenuse.", options: ["$10\\text{ cm}$", "$12\\text{ cm}$", "$14\\text{ cm}$", "$9\\text{ cm}$"], correct: 0, diff: "easy", exp: "Pythagorean theorem: $c = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = 10\\text{ cm}$." },
+                    { q: "What is the sum of interior angles of a pentagon (5 sides)?", options: ["$540^\\circ$", "$360^\\circ$", "$720^\\circ$", "$180^\\circ$"], correct: 0, diff: "medium", exp: "Formula: $(n-2) \\times 180^\\circ = (5-2) \\times 180^\\circ = 540^\\circ$." },
+                    { q: "Calculate volume of a cube with edge length $a = 4\\text{ cm}$.", options: ["$64\\text{ cm}^3$", "$16\\text{ cm}^3$", "$32\\text{ cm}^3$", "$96\\text{ cm}^3$"], correct: 0, diff: "easy", exp: "Volume $V = a^3 = 4^3 = 64\\text{ cm}^3$." },
+                    { q: "Find the area of a triangle with base $10\\text{ cm}$ and height $5\\text{ cm}$.", options: ["$25\\text{ cm}^2$", "$50\\text{ cm}^2$", "$20\\text{ cm}^2$", "$15\\text{ cm}^2$"], correct: 0, diff: "easy", exp: "Formula: $A = \\frac{1}{2} \\times b \\times h = \\frac{1}{2} \\times 10 \\times 5 = 25\\text{ cm}^2$." },
+                    { q: "Perimeter of a square is $36\\text{ cm}$. Find its area.", options: ["$81\\text{ cm}^2$", "$36\\text{ cm}^2$", "$18\\text{ cm}^2$", "$64\\text{ cm}^2$"], correct: 0, diff: "medium", exp: "Side length $= 36 \\div 4 = 9\\text{ cm}$. Area $= 9^2 = 81\\text{ cm}^2$." },
+                    { q: "Radius of a sphere is $3\\text{ cm}$. Find its surface area ($A = 4\\pi r^2$).", options: ["$36\\pi\\text{ cm}^2$", "$12\\pi\\text{ cm}^2$", "$18\\pi\\text{ cm}^2$", "$27\\pi\\text{ cm}^2$"], correct: 0, diff: "medium", exp: "$A = 4 \\pi (3^2) = 36\\pi\\text{ cm}^2$." },
+                    { q: "In a rhombus, diagonals are $12\\text{ cm}$ and $16\\text{ cm}$. Find its side length.", options: ["$10\\text{ cm}$", "$8\\text{ cm}$", "$14\\text{ cm}$", "$15\\text{ cm}$"], correct: 0, diff: "hard", exp: "Diagonals bisect at right angles: half-lengths are $6$ and $8$. Side $= \\sqrt{6^2 + 8^2} = 10$." },
+                    { q: "Height of a cylinder is $10\\text{ cm}$, radius is $3\\text{ cm}$. Find its volume.", options: ["$90\\pi\\text{ cm}^3$", "$30\\pi\\text{ cm}^3$", "$60\\pi\\text{ cm}^3$", "$180\\pi\\text{ cm}^3$"], correct: 0, diff: "hard", exp: "Volume $V = \\pi r^2 h = \\pi \\times 3^2 \\times 10 = 90\\pi\\text{ cm}^3$." },
+                    { q: "Find the area of an equilateral triangle with side $a = 6\\text{ cm}$.", options: ["$9\\sqrt{3}\\text{ cm}^2$", "$18\\text{ cm}^2$", "$12\\sqrt{3}\\text{ cm}^2$", "$36\\text{ cm}^2$"], correct: 0, diff: "hard", exp: "Formula: $A = \\frac{\\sqrt{3}}{4} a^2 = \\frac{\\sqrt{3}}{4} \\times 36 = 9\\sqrt{3}$." }
+                ]
+            },
+            "quadratics": {
+                title: "Powers & Quadratics",
+                icon: "fa-superscript",
+                color: "bg-amber-500",
+                desc: "Exponents, radical rules, quadratic factoring, and roots.",
+                questions: [
+                    { q: "Simplify expression: $(2^3)^2 \\div 4$", options: ["16", "4", "8", "32"], correct: 0, diff: "medium", exp: "$2^3 = 8$, $8^2 = 64$, $64 \\div 4 = 16$." },
+                    { q: "Find roots of equation: $x^2 - 5x + 6 = 0$", options: ["$x = 2, 3$", "$x = 1, 6$", "$x = -2, -3$", "$x = -1, -6$"], correct: 0, diff: "hard", exp: "Factor: $(x-2)(x-3) = 0 \\Rightarrow x = 2, 3$." },
+                    { q: "Simplify: $\\sqrt{72}$", options: ["$6\\sqrt{2}$", "$3\\sqrt{8}$", "$2\\sqrt{18}$", "$36\\sqrt{2}$"], correct: 0, diff: "medium", exp: "Factor square: $\\sqrt{36 \\times 2} = 6\\sqrt{2}$." },
+                    { q: "Discriminant of quadratic equation $2x^2 - 4x + 2 = 0$ is:", options: ["0", "16", "-8", "8"], correct: 0, diff: "medium", exp: "$D = b^2 - 4ac = (-4)^2 - 4(2)(2) = 16 - 16 = 0$." },
+                    { q: "Simplify exponent: $x^5 \\cdot x^{-2} \\div x^3$", options: ["$1$", "$x^2$", "$x$", "$x^0$"], correct: 0, diff: "easy", exp: "Exponent rules: $5 - 2 - 3 = 0$, so $x^0 = 1$." },
+                    { q: "If sum of roots of $x^2 + px + q = 0$ is $7$ and product is $12$, find $p$ and $q$.", options: ["$p = -7, q = 12$", "$p = 7, q = 12$", "$p = -7, q = -12$", "$p = 12, q = 7$"], correct: 0, diff: "hard", exp: "Vieta's formulas: $x_1 + x_2 = -p = 7 \\Rightarrow p = -7$. Product $q = 12$." },
+                    { q: "Factor completely: $x^2 - 16$", options: ["$(x-4)(x+4)$", "$(x-4)^2$", "$(x+4)^2$", "$(x-8)(x+2)$"], correct: 0, diff: "easy", exp: "Difference of squares: $a^2 - b^2 = (a-b)(a+b)$." },
+                    { q: "Solve: $x^2 = 49$", options: ["$x = \\pm 7$", "$x = 7$", "$x = 14$", "$x = \\pm 14$"], correct: 0, diff: "easy", exp: "Taking square root yields two solutions: $x = +7$ and $x = -7$." },
+                    { q: "Vertex x-coordinate of parabola $y = 3x^2 - 12x + 5$ is:", options: ["$x = 2$", "$x = -2$", "$x = 4$", "$x = -4$"], correct: 0, diff: "hard", exp: "Vertex formula: $x_v = -\\frac{b}{2a} = -\\frac{-12}{2(3)} = 2$." },
+                    { q: "Simplify: $\\sqrt[3]{27x^6}$", options: ["$3x^2$", "$9x^2$", "$3x^3$", "$9x^3$"], correct: 0, diff: "medium", exp: "$\\sqrt[3]{27} = 3$ and $\\sqrt[3]{x^6} = x^{6/3} = x^2$." }
+                ]
+            },
+            "sequences": {
+                title: "Sequences & Progressions",
+                icon: "fa-chart-line",
+                color: "bg-rose-500",
+                desc: "Arithmetic and geometric sequences, series, and formulas.",
+                questions: [
+                    { q: "Find the 10th term of arithmetic sequence: $3, 7, 11, 15, \\dots$", options: ["39", "35", "41", "37"], correct: 0, diff: "medium", exp: "First term $a_1 = 3$, difference $d = 4$. $a_{10} = a_1 + 9d = 3 + 36 = 39$." },
+                    { q: "Find common ratio of geometric sequence: $2, 6, 18, 54, \\dots$", options: ["3", "4", "2", "6"], correct: 0, diff: "easy", exp: "Divide consecutive terms: $6 \\div 2 = 3$." },
+                    { q: "Sum of first 5 terms of arithmetic sequence $a_1 = 2, d = 3$ is:", options: ["40", "35", "45", "30"], correct: 0, diff: "medium", exp: "Terms are $2, 5, 8, 11, 14$. Sum $= 2 + 5 + 8 + 11 + 14 = 40$." },
+                    { q: "Find 4th term of geometric sequence: $a_1 = 5, q = 2$", options: ["40", "20", "80", "30"], correct: 0, diff: "medium", exp: "Formula: $b_n = b_1 \\cdot q^{n-1} \\Rightarrow b_4 = 5 \\cdot 2^3 = 5 \\cdot 8 = 40$." },
+                    { q: "Sum of infinite geometric series $1 + \\frac{1}{2} + \\frac{1}{4} + \\dots$ is:", options: ["2", "1.5", "3", "Infinite"], correct: 0, diff: "hard", exp: "Formula: $S = \\frac{a}{1-q} = \\frac{1}{1 - 0.5} = 2$." },
+                    { q: "If $a_1 = 10$ and $a_5 = 26$ in an arithmetic sequence, find $d$.", options: ["4", "3", "5", "6"], correct: 0, diff: "medium", exp: "$a_5 = a_1 + 4d \\Rightarrow 26 = 10 + 4d \\Rightarrow 4d = 16 \\Rightarrow d = 4$." },
+                    { q: "Which term of arithmetic sequence $5, 8, 11, \\dots$ equals $32$?", options: ["10th", "9th", "11th", "8th"], correct: 0, diff: "hard", exp: "$32 = 5 + (n-1)3 \\Rightarrow 27 = 3(n-1) \\Rightarrow n-1 = 9 \\Rightarrow n = 10$." },
+                    { q: "Find geometric mean of numbers $4$ and $16$.", options: ["8", "10", "6", "9"], correct: 0, diff: "easy", exp: "Geometric mean $= \\sqrt{4 \\times 16} = \\sqrt{64} = 8$." },
+                    { q: "Calculate sum $1 + 2 + 3 + \\dots + 50$.", options: ["1275", "1250", "1300", "2550"], correct: 0, diff: "medium", exp: "Gauss formula: $S_n = \\frac{n(n+1)}{2} = \\frac{50 \\times 51}{2} = 1275$." },
+                    { q: "In a geometric sequence $b_3 = 12$ and $b_5 = 48$, find $q$ ($q > 0$).", options: ["2", "4", "3", "1.5"], correct: 0, diff: "hard", exp: "$b_5 / b_3 = q^2 = 48 / 12 = 4 \\Rightarrow q = 2$." }
+                ]
+            },
+            "functions": {
+                title: "Functions & Graphs",
+                icon: "fa-chart-area",
+                color: "bg-indigo-500",
+                desc: "Domain, range, evaluation, linear & quadratic graphs.",
+                questions: [
+                    { q: "Given $f(x) = 2x^2 - 3x + 1$, calculate $f(-2)$.", options: ["15", "11", "3", "-1"], correct: 0, diff: "medium", exp: "$f(-2) = 2(-2)^2 - 3(-2) + 1 = 2(4) + 6 + 1 = 15$." },
+                    { q: "Domain of function $f(x) = \\frac{5}{x - 3}$ is:", options: ["$x \\neq 3$", "All real numbers", "$x > 3$", "$x \\neq 0$"], correct: 0, diff: "easy", exp: "Denominator cannot equal zero: $x - 3 \\neq 0 \\Rightarrow x \\neq 3$." },
+                    { q: "Find y-intercept of graph $y = 4x - 7$.", options: ["-7", "4", "7", "1.75"], correct: 0, diff: "easy", exp: "Set $x = 0 \\Rightarrow y = -7$." },
+                    { q: "Find domain of function $f(x) = \\sqrt{x - 4}$.", options: ["$x \\ge 4$", "$x > 4$", "$x \\le 4$", "All real numbers"], correct: 0, diff: "medium", exp: "Under square root must be non-negative: $x - 4 \\ge 0 \\Rightarrow x \\ge 4$." },
+                    { q: "Slopes of two perpendicular lines $L_1$ and $L_2$ satisfy:", options: ["$k_1 \\cdot k_2 = -1$", "$k_1 = k_2$", "$k_1 + k_2 = 0$", "$k_1 \\cdot k_2 = 1$"], correct: 0, diff: "medium", exp: "Perpendicular lines have negative reciprocal slopes: product is $-1$." },
+                    { q: "Find intersection point of $y = 2x + 1$ and $y = -x + 7$.", options: ["$(2, 5)$", "$(3, 4)$", "$(1, 3)$", "$(2, 4)$"], correct: 0, diff: "hard", exp: "$2x + 1 = -x + 7 \\Rightarrow 3x = 6 \\Rightarrow x = 2$. Then $y = 2(2)+1 = 5$." },
+                    { q: "If $f(x) = 3x + 2$, find inverse function $f^{-1}(x)$.", options: ["$\\frac{x-2}{3}$", "$\\frac{x+2}{3}$", "$3x - 2$", "$\\frac{1}{3x+2}$"], correct: 0, diff: "hard", exp: "Set $y = 3x + 2 \\Rightarrow x = \\frac{y-2}{3}$, swap variables: $f^{-1}(x) = \\frac{x-2}{3}$." },
+                    { q: "Is function $f(x) = x^4 + 2x^2$ even or odd?", options: ["Even", "Odd", "Neither", "Both"], correct: 0, diff: "medium", exp: "$f(-x) = (-x)^4 + 2(-x)^2 = x^4 + 2x^2 = f(x)$, so it is Even." },
+                    { q: "Find minimum value of function $f(x) = (x-3)^2 + 4$.", options: ["4", "3", "0", "-4"], correct: 0, diff: "easy", exp: "Since $(x-3)^2 \\ge 0$, minimum value is $0 + 4 = 4$." },
+                    { q: "If $f(x) = x + 3$ and $g(x) = 2x$, find composite $(f \\circ g)(4)$.", options: ["11", "14", "10", "12"], correct: 0, diff: "hard", exp: "$g(4) = 8$. Then $f(g(4)) = f(8) = 8 + 3 = 11$." }
+                ]
+            },
+            "trigonometry": {
+                title: "Trigonometry Basics",
+                icon: "fa-compass",
+                color: "bg-teal-500",
+                desc: "Sine, cosine, tangent, radians, and fundamental identities.",
+                questions: [
+                    { q: "Find exact value of $\\sin(30^\\circ)$.", options: ["$\\frac{1}{2}$", "$\\frac{\\sqrt{3}}{2}$", "$\\frac{\\sqrt{2}}{2}$", "1"], correct: 0, diff: "easy", exp: "Standard trigonometric angle value: $\\sin(30^\\circ) = 0.5$." },
+                    { q: "Convert $180^\\circ$ into radians.", options: ["$\\pi$", "$2\\pi$", "$\\frac{\\pi}{2}$", "$\\frac{3\\pi}{2}$"], correct: 0, diff: "easy", exp: "$180^\\circ$ corresponds to $\\pi$ radians." },
+                    { q: "Simplify identity: $\\sin^2(x) + \\cos^2(x)$", options: ["1", "0", "$\\tan^2(x)$", "2"], correct: 0, diff: "easy", exp: "Pythagorean trigonometric identity equals 1." },
+                    { q: "Find value of $\\cos(60^\\circ)$.", options: ["$\\frac{1}{2}$", "$\\frac{\\sqrt{3}}{2}$", "0", "1"], correct: 0, diff: "easy", exp: "Standard angle value: $\\cos(60^\\circ) = 0.5$." },
+                    { q: "Find value of $\\tan(45^\\circ)$.", options: ["1", "0", "$\\sqrt{3}$", "$\\frac{\\sqrt{3}}{3}$"], correct: 0, diff: "easy", exp: "$\\tan(45^\\circ) = \\frac{\\sin(45^\\circ)}{\\cos(45^\\circ)} = 1$." },
+                    { q: "In right triangle, hypotenuse is $10$ and opposite angle $\\theta$ side is $6$. Find $\\sin(\\theta)$.", options: ["0.6", "0.8", "0.75", "1.25"], correct: 0, diff: "medium", exp: "$\\sin(\\theta) = \\frac{\\text{Opposite}}{\\text{Hypotenuse}} = \\frac{6}{10} = 0.6$." },
+                    { q: "Simplify: $\\frac{\\sin(x)}{\\cos(x)}$", options: ["$\\tan(x)$", "$\\cot(x)$", "1", "$\\sec(x)$"], correct: 0, diff: "easy", exp: "By definition: $\\tan(x) = \\frac{\\sin(x)}{\\cos(x)}$." },
+                    { q: "Find value of $\\sin(90^\\circ)$.", options: ["1", "0", "-1", "Undefined"], correct: 0, diff: "easy", exp: "Unit circle value at $90^\\circ$ is $1$." },
+                    { q: "Value of $\\cos(\\pi)$ radians is:", options: ["-1", "1", "0", "Undefined"], correct: 0, diff: "medium", exp: "$\\pi\\text{ rad} = 180^\\circ$, and $\\cos(180^\\circ) = -1$." },
+                    { q: "Simplify: $1 - \\cos^2(x)$", options: ["$\\sin^2(x)$", "$\\cos^2(x)$", "$\\tan^2(x)$", "$-1$"], correct: 0, diff: "medium", exp: "From $\\sin^2(x) + \\cos^2(x) = 1$, we get $1 - \\cos^2(x) = \\sin^2(x)$." }
+                ]
+            },
+            "probability": {
+                title: "Probability & Combinatorics",
+                icon: "fa-dice",
+                color: "bg-orange-500",
+                desc: "Events, permutations, combinations, and factorials.",
+                questions: [
+                    { q: "What is the probability of rolling an even number on a standard 6-sided die?", options: ["$\\frac{1}{2}$", "$\\frac{1}{3}$", "$\\frac{1}{6}$", "$\\frac{2}{3}$"], correct: 0, diff: "easy", exp: "Favorable outcomes: $\{2, 4, 6\}$ (3 options). $P = \\frac{3}{6} = \\frac{1}{2}$." },
+                    { q: "Calculate value of $5!$ (5 factorial).", options: ["120", "60", "24", "720"], correct: 0, diff: "easy", exp: "$5! = 5 \\times 4 \\times 3 \\times 2 \\times 1 = 120$." },
+                    { q: "Calculate combination $C_5^2$ (5 choose 2).", options: ["10", "20", "15", "5"], correct: 0, diff: "medium", exp: "$C_n^k = \\frac{n!}{k!(n-k)!} = \\frac{5 \\times 4}{2 \\times 1} = 10$." },
+                    { q: "Calculate permutation $P_4$.", options: ["24", "12", "16", "4"], correct: 0, diff: "easy", exp: "$P_4 = 4! = 4 \\times 3 \\times 2 \\times 1 = 24$." },
+                    { q: "Flip two fair coins. Probability of getting 2 heads is:", options: ["$\\frac{1}{4}$", "$\\frac{1}{2}$", "$\\frac{3}{4}$", "$\\frac{1}{3}$"], correct: 0, diff: "medium", exp: "Sample space $\{HH, HT, TH, TT\}$. $P(HH) = \\frac{1}{4}$." },
+                    { q: "In a bag of 3 red and 7 blue balls, probability of picking a red ball is:", options: ["30%", "70%", "50%", "3%"], correct: 0, diff: "easy", exp: "Total $= 10$ balls. $P = \\frac{3}{10} = 0.3 = 30\\%$." },
+                    { q: "Calculate arrangement $A_4^2$.", options: ["12", "6", "24", "8"], correct: 0, diff: "medium", exp: "$A_n^k = \\frac{n!}{(n-k)!} = \\frac{4!}{2!} = 4 \\times 3 = 12$." },
+                    { q: "Probability of an impossible event is:", options: ["0", "1", "0.5", "-1"], correct: 0, diff: "easy", exp: "By definition, impossible event probability equals $0$." },
+                    { q: "How many ways can 3 books be arranged on a shelf?", options: ["6", "3", "9", "1"], correct: 0, diff: "easy", exp: "Arrangements $= 3! = 3 \\times 2 \\times 1 = 6$." },
+                    { q: "From a group of 6 people, how many ways to select a committee of 3?", options: ["20", "120", "18", "30"], correct: 0, diff: "hard", exp: "$C_6^3 = \\frac{6 \\times 5 \\times 4}{3 \\times 2 \\times 1} = 20$." }
+                ]
+            },
+            "mixed": {
+                title: "Mixed Comprehensive Test",
+                icon: "fa-layer-group",
+                color: "bg-slate-700",
+                desc: "A random set of 10 questions covering all math topics.",
+                questions: []
+            }
+        };
+
+        let currentTopicKey = 'arithmetic';
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let startTime = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTopicCards();
+            initializeTheme();
+        });
+
+        function initializeTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-lg text-amber-400';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-moon text-lg text-slate-600';
+            }
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+                document.getElementById('themeIcon').className = 'fa-solid fa-moon text-lg text-slate-600';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-lg text-amber-400';
+            }
+        }
+
+        function renderTopicCards() {
+            const grid = document.getElementById('topicsGrid');
+            grid.innerHTML = '';
+
+            Object.keys(quizData).forEach(key => {
+                const topic = quizData[key];
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-blue-500 dark:hover:border-blue-500 transition cursor-pointer flex flex-col justify-between group";
+                card.onclick = () => startQuiz(key);
+
+                card.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 rounded-xl ${topic.color} text-white flex items-center justify-center text-xl shadow-md group-hover:scale-110 transition-transform">
+                            <i class="fa-solid ${topic.icon}"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">${topic.title}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${topic.desc}</p>
+                        </div>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center text-xs font-semibold text-blue-600 dark:text-blue-400">
+                        <span>10 Questions</span>
+                        <span>Start <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function startQuiz(topicKey) {
+            currentTopicKey = topicKey;
+            
+            if (topicKey === 'mixed') {
+                let pool = [];
+                Object.keys(quizData).forEach(k => {
+                    if (k !== 'mixed') pool.push(...quizData[k].questions);
+                });
+                currentQuestions = pool.sort(() => 0.5 - Math.random()).slice(0, 10);
+            } else {
+                currentQuestions = [...quizData[topicKey].questions];
+            }
+
+            currentQuestionIndex = 0;
+            userAnswers = new Array(currentQuestions.length).fill(null);
+            startTime = new Date();
+
+            document.getElementById('topicScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+
+            document.getElementById('quizTopicTitle').innerText = quizData[topicKey].title;
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = currentQuestions[currentQuestionIndex];
+            
+            document.getElementById('quizCounter').innerText = `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`;
+            const progressPct = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progressPct}%`;
+
+            const badge = document.getElementById('difficultyBadge');
+            badge.innerText = q.diff;
+            if (q.diff === 'easy') badge.className = "px-2.5 py-1 text-xs font-semibold rounded-md uppercase tracking-wider shrink-0 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300";
+            else if (q.diff === 'medium') badge.className = "px-2.5 py-1 text-xs font-semibold rounded-md uppercase tracking-wider shrink-0 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300";
+            else badge.className = "px-2.5 py-1 text-xs font-semibold rounded-md uppercase tracking-wider shrink-0 bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300";
+
+            document.getElementById('questionText').innerHTML = q.q;
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            
+            const hasAnswered = userAnswers[currentQuestionIndex] !== null;
+            const selectedIdx = userAnswers[currentQuestionIndex];
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-4 text-left rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 font-medium text-slate-800 dark:text-slate-200 transition flex items-center justify-between group";
+                
+                if (hasAnswered) {
+                    btn.disabled = true;
+                    if (idx === q.correct) {
+                        btn.className = "w-full p-4 text-left rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 font-bold text-emerald-900 dark:text-emerald-200 flex items-center justify-between";
+                        btn.innerHTML = `<span>${opt}</span> <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-lg"></i>`;
+                    } else if (idx === selectedIdx) {
+                        btn.className = "w-full p-4 text-left rounded-xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/40 font-bold text-rose-900 dark:text-rose-200 flex items-center justify-between";
+                        btn.innerHTML = `<span>${opt}</span> <i class="fa-solid fa-circle-xmark text-rose-600 dark:text-rose-400 text-lg"></i>`;
+                    } else {
+                        btn.className = "w-full p-4 text-left rounded-xl border border-slate-200 dark:border-slate-700 opacity-50 text-slate-500 flex items-center justify-between";
+                        btn.innerHTML = `<span>${opt}</span>`;
+                    }
+                } else {
+                    btn.onclick = () => selectOption(idx);
+                    btn.innerHTML = `<span>${opt}</span> <span class="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 group-hover:border-blue-500 flex items-center justify-center"></span>`;
+                }
+
+                container.appendChild(btn);
+            });
+
+            const expBox = document.getElementById('explanationBox');
+            const expHeader = document.getElementById('explanationHeader');
+            const expText = document.getElementById('explanationText');
+
+            if (hasAnswered) {
+                expBox.classList.remove('hidden');
+                if (selectedIdx === q.correct) {
+                    expHeader.className = "font-bold text-sm flex items-center gap-2 text-emerald-600 dark:text-emerald-400";
+                    expHeader.innerHTML = `<i class="fa-solid fa-check-circle"></i> Correct Answer!`;
+                } else {
+                    expHeader.className = "font-bold text-sm flex items-center gap-2 text-rose-600 dark:text-rose-400";
+                    expHeader.innerHTML = `<i class="fa-solid fa-xmark-circle"></i> Incorrect.`;
+                }
+                expText.innerHTML = `<strong>Step-by-step solution:</strong> ${q.exp}`;
+            } else {
+                expBox.classList.add('hidden');
+            }
+
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentQuestionIndex === currentQuestions.length - 1) {
+                nextBtn.innerHTML = `Finish Quiz <i class="fa-solid fa-flag-checkered ml-1"></i>`;
+            } else {
+                nextBtn.innerHTML = `Next <i class="fa-solid fa-chevron-right ml-1"></i>`;
+            }
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestionIndex] = index;
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            const endTime = new Date();
+            const elapsedSecs = Math.floor((endTime - startTime) / 1000);
+            const mins = Math.floor(elapsedSecs / 60);
+            const secs = elapsedSecs % 60;
+            const formattedTime = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+            let correctCount = 0;
+            currentQuestions.forEach((q, idx) => {
+                if (userAnswers[idx] === q.correct) correctCount++;
+            });
+
+            const percentage = Math.round((correctCount / currentQuestions.length) * 100);
+
+            document.getElementById('finalScore').innerText = `${correctCount} / ${currentQuestions.length}`;
+            document.getElementById('finalPercentage').innerText = `${percentage}%`;
+            document.getElementById('timeSpent').innerText = formattedTime;
+
+            const gradeTitle = document.getElementById('resultGradeText');
+            const subTitle = document.getElementById('resultSubTitle');
+            const iconContainer = document.getElementById('scoreIcon');
+
+            if (percentage >= 90) {
+                gradeTitle.innerText = "Excellent Job!";
+                subTitle.innerText = "You have mastered this math topic!";
+                iconContainer.className = "inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold";
+            } else if (percentage >= 70) {
+                gradeTitle.innerText = "Good Effort!";
+                subTitle.innerText = "You have a solid understanding, keep practicing!";
+                iconContainer.className = "inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-3xl font-extrabold";
+            } else {
+                gradeTitle.innerText = "Keep Practicing!";
+                subTitle.innerText = "Review the step-by-step solutions below to improve.";
+                iconContainer.className = "inline-flex items-center justify-center w-20 h-20 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 text-3xl font-extrabold";
+            }
+
+            const reviewList = document.getElementById('reviewList');
+            reviewList.innerHTML = '';
+
+            currentQuestions.forEach((q, idx) => {
+                const isCorrect = userAnswers[idx] === q.correct;
+                const userSelectedText = userAnswers[idx] !== null ? q.options[userAnswers[idx]] : "Not answered";
+                const correctText = q.options[q.correct];
+
+                const item = document.createElement('div');
+                item.className = "bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 space-y-3 shadow-sm";
+                item.innerHTML = `
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="font-bold text-slate-900 dark:text-white">
+                            <span class="text-blue-600 dark:text-blue-400">Q${idx + 1}.</span> ${q.q}
+                        </div>
+                        <span class="px-2.5 py-1 text-xs font-bold rounded-md shrink-0 ${isCorrect ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300'}">
+                            ${isCorrect ? 'Correct' : 'Incorrect'}
+                        </span>
+                    </div>
+                    <div class="text-sm grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/50">
+                        <div class="${isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} font-medium">
+                            Your Answer: <span>${userSelectedText}</span>
+                        </div>
+                        <div class="text-emerald-600 dark:text-emerald-400 font-medium">
+                            Correct Answer: <span>${correctText}</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <strong>Solution:</strong> ${q.exp}
+                    </div>
+                `;
+                reviewList.appendChild(item);
+            });
+
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function restartCurrentQuiz() {
+            startQuiz(currentTopicKey);
+        }
+
+        function showTopicSelection() {
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('topicScreen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
